@@ -1,0 +1,6 @@
+# immich/.gitignore
+uploads/
+database/
+*.log
+*.sql
+.env

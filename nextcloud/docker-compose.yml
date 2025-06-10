@@ -1,0 +1,67 @@
+version: '3.7'
+
+services:
+  db:
+    image: mariadb:latest
+    container_name: nextcloud-db
+    volumes:
+      - nextcloud-db-data:/var/lib/mysql
+    networks:
+      - default
+    restart: always
+    environment:
+      TZ: UTC
+      MYSQL_ROOT_PASSWORD: '#@4321Sametak1234@#'
+      MYSQL_DATABASE: db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: '#@4321Sametak1234@#'
+
+  redis:
+    image: redis:latest
+    restart: always
+    networks:
+      - default
+    volumes:
+      - redis:/var/lib/redis
+
+  nextcloud:
+    depends_on:
+      - redis
+      - db
+    image: nextcloud:stable 
+    container_name: nextcloud
+    volumes:
+      - ./files:/var/www/html
+    networks:
+      - proxy
+      - default
+    restart: always
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.nextcloud.loadbalancer.server.port=80
+      - traefik.http.services.nextcloud.loadbalancer.server.scheme=http
+      - traefik.http.routers.nextcloud.rule=Host(`nextcloud.sametak.com`)
+      - traefik.http.routers.nextcloud.entrypoints=https
+      - traefik.http.routers.nextcloud.tls=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.nextcloud.middlewares=nextcloud_redirectregex
+      - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.permanent=true
+      - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.regex=https://(.*)/.well-known/(.*)
+      - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.replacement=https://$$1/remote.php/dav/$2
+    environment:
+      REDIS_HOST: redis
+      MYSQL_HOST: db:3306
+      MYSQL_DATABASE: db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: '#@4321Sametak1234@#'
+      PHP_MEMORY_LIMIT: 2048M
+      PHP_UPLOAD_LIMIT: 2048M
+networks:
+  proxy:
+    external: true
+    
+volumes:
+  nextcloud-db-data:
+    name: nextcloud-db-data
+  redis:
+    name: nextcloud-redis

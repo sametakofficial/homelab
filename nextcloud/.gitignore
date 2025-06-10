@@ -1,0 +1,6 @@
+# nextcloud/.gitignore
+files/
+*.log
+*.sql
+.env
+nextcloud-init-sync.lock
