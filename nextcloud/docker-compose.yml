@@ -10,11 +10,11 @@ services:
       - default
     restart: always
     environment:
-      TZ: UTC
-      MYSQL_ROOT_PASSWORD: '#@4321Sametak1234@#'
-      MYSQL_DATABASE: db
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: '#@4321Sametak1234@#'
+      TZ: ${TZ}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
   redis:
     image: redis:latest
@@ -51,11 +51,12 @@ services:
     environment:
       REDIS_HOST: redis
       MYSQL_HOST: db:3306
-      MYSQL_DATABASE: db
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: '#@4321Sametak1234@#'
-      PHP_MEMORY_LIMIT: 2048M
-      PHP_UPLOAD_LIMIT: 2048M
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT}
+      PHP_UPLOAD_LIMIT: ${PHP_UPLOAD_LIMIT}
+
 networks:
   proxy:
     external: true
