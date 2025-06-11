@@ -1,6 +1,3 @@
 [submodule "sametak"]
 	path = sametak
 	url = git@github.com:sametakofficial/sametak.git
-[submodule "mailcow-dockerized"]
-	path = mailcow-dockerized
-	url = git@github.com:mailcow/mailcow-dockerized.git
