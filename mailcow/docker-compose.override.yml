@@ -1,0 +1,35 @@
+services:
+  nginx-mailcow:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx-mailcow.entrypoints=http"
+      - "traefik.http.routers.nginx-mailcow.rule=HostRegexp(`{host:(autodiscover|autoconfig|webmail|mail|email).+}`)"
+      - "traefik.http.middlewares.nginx-mailcow-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.nginx-mailcow.middlewares=nginx-mailcow-https-redirect"
+      - "traefik.http.routers.nginx-mailcow-secure.entrypoints=https"
+      - "traefik.http.routers.nginx-mailcow-secure.rule=Host(`mail.sametak.com`)" # YOUR EMAIL SUBDMAIN
+      - "traefik.http.routers.nginx-mailcow-secure.tls=true"
+      - "traefik.http.routers.registry-secured.tls.certresolver=cloudflare" # ADD your Certresolver here
+      - "traefik.http.routers.nginx-mailcow-secure.service=nginx-mailcow"
+      - "traefik.http.services.nginx-mailcow.loadbalancer.server.port=80"
+      - "traefik.docker.network=proxy"
+    networks:
+      proxy:
+  certdumper:
+    image: humenius/traefik-certs-dumper
+    container_name: traefik_certdumper
+    restart: unless-stopped
+    network_mode: none
+    command: --restart-containers mailcowdockerized_postfix-mailcow_1,mailcowdockerized_dovecot-mailcow_1
+    volumes:
+      # mount the folder which contains Traefik's `acme.json' file
+      #   in this case Traefik is started from its own docker-compose in ../traefik
+      - /docker_volumes/traefik/data:/traefik:ro
+      # mount mailcow's SSL folder
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data/assets/ssl:/output:rw
+    environment:
+      - DOMAIN=mail.sametak.com # YOUR EMAIL SUBDOMAIN HERE
+networks:
+  proxy: # YOUR TRAEFIK NETWORK HERE
+    external: true
