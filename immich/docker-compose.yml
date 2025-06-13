@@ -6,7 +6,7 @@ services:
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
-      - /docker_volumes/nextcloud/files/data/admin/files/Photos:/usr/src/app/external
+      - /homelab/nextcloud/files/data/admin/files/Photos:/usr/src/app/external # external library i burda mount ediyorum kurmayacaksanız yorum satırına alın
     env_file:
       - .env
     environment:

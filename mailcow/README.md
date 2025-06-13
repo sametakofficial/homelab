@@ -94,7 +94,7 @@ networks:
 ```
 2025/06/11 17:53:03 [error] 15#15: *1 connect() failed (111: Connection refused) while connecting to upstream, client: 31.223.48.110, server: mail.yourdomain.com, request: GET / HTTP/1.1 , upstream: fastcgi://172.22.1.6:9002 , host: mail.yourdomain.com 
 ```
-![connect() failed (111: Connection refused) while connecting to upstream, client:](readme-media/disgusting_error.png)
+![connect() failed (111: Connection refused) while connecting to upstream, client:](/readme-media/mailcow-error.png)
 
 ##### bu tarz hatalar çıkabilir. Aynı zamanda docker-compose.override.yml üzerinde yapacağınız her değişiklik sonrası once ``` docker compose up -d --build --force-recreate ``` ile containeri tekrar başlatmalısınız yoksa değişiklikler uygulanmaz.
 
@@ -173,3 +173,4 @@ providers:
 ```
 
 ###### bu kısımı ekleyebilirsiniz. İşte bu kadar dinamik kurulum daha basit ama static ve dinamiki ikisinide anlatmak istedim gorusuruz
+![mail tester success](/readme-media/mailcow-success.png)

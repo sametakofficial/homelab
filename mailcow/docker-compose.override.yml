@@ -20,7 +20,7 @@ services:
     container_name: traefik_certdumper
     restart: unless-stopped
     network_mode: none
-    command: --restart-containers mailcowdockerized_postfix-mailcow_1,mailcowdockerized_dovecot-mailcow_1
+    command: --restart-containers mailcowdockerized-postfix-mailcow-1,mailcowdockerized-dovecot-mailcow-1
     volumes:
       # mount the folder which contains Traefik's `acme.json' file
       #   in this case Traefik is started from its own docker-compose in ../traefik
