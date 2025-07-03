@@ -7,7 +7,7 @@ services:
       - "traefik.http.middlewares.nginx-mailcow-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.nginx-mailcow.middlewares=nginx-mailcow-https-redirect"
       - "traefik.http.routers.nginx-mailcow-secure.entrypoints=https"
-      - "traefik.http.routers.nginx-mailcow-secure.rule=Host(`mail.sametak.com`)" # YOUR EMAIL SUBDMAIN
+      - "traefik.http.routers.nginx-mailcow-secure.rule=Host(`${MAILCOW_HOSTNAME}`)" # YOUR EMAIL SUBDMAIN
       - "traefik.http.routers.nginx-mailcow-secure.tls=true"
       - "traefik.http.routers.registry-secured.tls.certresolver=cloudflare" # ADD your Certresolver here
       - "traefik.http.routers.nginx-mailcow-secure.service=nginx-mailcow"
@@ -29,7 +29,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./data/assets/ssl:/output:rw
     environment:
-      - DOMAIN=mail.sametak.com # YOUR EMAIL SUBDOMAIN HERE
+      - DOMAIN=${MAILCOW_HOSTNAME} # YOUR EMAIL SUBDOMAIN HERE
 networks:
   proxy: # YOUR TRAEFIK NETWORK HERE
     external: true

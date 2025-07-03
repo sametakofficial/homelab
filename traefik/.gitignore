@@ -1,5 +1,2 @@
 *.key
 *.log
-.env
-acme.json
-cf_api_token.txt

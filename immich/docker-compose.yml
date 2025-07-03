@@ -26,7 +26,7 @@ services:
       - traefik.http.routers.immich.service=immich
       - traefik.http.routers.immich.tls.certresolver=cloudflare
       - traefik.enable=true
-      - traefik.http.routers.immich.rule=Host(`immich.sametak.com`)
+      - traefik.http.routers.immich.rule=Host(`${DOMAIN}`)"
       - traefik.http.services.immich.loadbalancer.server.port=2283
       - traefik.docker.network=proxy
     #  # Optional part for file upload max sizes

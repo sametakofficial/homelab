@@ -1,0 +1,190 @@
+services:
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /srv/docker/jackett/config:/config
+      - /srv/downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.jackett.rule=Host(`jackett.${DOMAIN}`)"
+      - "traefik.http.routers.jackett.entrypoints=https"
+      - "traefik.http.routers.jackett.tls.certresolver=cloudflare"
+      - "traefik.http.services.jackett.loadbalancer.server.port=9117"
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /srv/docker/sonarr/config:/config
+      - /srv/media/tv:/tv
+      - /srv/downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN}`)"
+      - "traefik.http.routers.sonarr.entrypoints=https"
+      - "traefik.http.routers.sonarr.tls.certresolver=cloudflare"
+      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /srv/docker/radarr/config:/config
+      - /srv/media/movies:/movies
+      - /srv/downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.${DOMAIN}`)"
+      - "traefik.http.routers.radarr.entrypoints=https"
+      - "traefik.http.routers.radarr.tls.certresolver=cloudflare"
+      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /srv/docker/qbittorrent/config:/config
+      - /srv/downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.${DOMAIN}`)"
+      - "traefik.http.routers.qbittorrent.entrypoints=https"
+      - "traefik.http.routers.qbittorrent.tls.certresolver=cloudflare"
+      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    deploy:
+      resources:
+        limits:
+          memory: 16g
+    ports:
+      - "8096:8096"
+    tmpfs:
+      - /cache/transcodes:size=10G
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /srv/docker/jellyfin/config:/config
+      - /srv/media:/media
+      - /srv/downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.${DOMAIN}`)"
+      - "traefik.http.routers.jellyfin.entrypoints=https"
+      - "traefik.http.routers.jellyfin.tls.certresolver=cloudflare"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  flexget:
+    image: linuxserver/flexget
+    container_name: flexget
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - FG_WEBUI_PASSWORD=${PASS}
+      - FG_LOG_LEVEL=info
+    volumes:
+      - /srv/docker/flexget/config:/config
+      - /srv/media:/media
+      - /srv/downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.flexget.rule=Host(`flexget.${DOMAIN}`)"
+      - "traefik.http.routers.flexget.entrypoints=https"
+      - "traefik.http.routers.flexget.tls.certresolver=cloudflare"
+      - "traefik.http.services.flexget.loadbalancer.server.port=5050"
+    networks:
+      - proxy
+    restart: unless-stopped
+  rechecker:
+    build:
+      context: ./dockerfiles/recheck
+    container_name: rechecker
+    env_file:
+      - ./.env      
+    environment: 
+      - PYTHONUNBUFFERED=1
+    networks:
+      - proxy
+    restart: "no"
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    privileged: true           # <-- BU YENİ SATIRI EKLEYİN
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - VERSION=docker
+      - TZ=${TZ}
+      - PLEX_CLAIM=claim-jYuyZsNzNbZW-3sHNbPC  # Eğer Plex hesabına bağlamak istersen
+      - LAN_NETWORKS=172.18.0.0/16
+    ports:
+      - "32400:32400/tcp"  # Ana Web Arayüzü (En önemlisi bu)
+      - "3005:3005/tcp"
+      - "8324:8324/tcp"
+      - "32469:32469/tcp"
+      - "1900:1900/udp"
+      - "32410:32410/udp"
+      - "32412:32412/udp"
+      - "32413:32413/udp"
+      - "32414:32414/udp"
+
+    volumes:
+      - /srv/docker/plex/config:/config
+      - /srv/media:/media          # medya erişimi (filmler/diziler)
+      - /srv/downloads:/downloads  # indirme klasörü
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.plex.rule=Host(`plex.${DOMAIN}`)"
+      - "traefik.http.routers.plex.entrypoints=https"
+      - "traefik.http.routers.plex.tls.certresolver=cloudflare"
+      - "traefik.http.services.plex.loadbalancer.server.port=32400"
+    networks:
+      - proxy
+    restart: unless-stopped
+networks:
+  proxy:
+    external: true
