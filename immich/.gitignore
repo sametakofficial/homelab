@@ -3,4 +3,3 @@ uploads/
 database/
 *.log
 *.sql
-.env
