@@ -1,0 +1,25 @@
+
+services:
+  kodexplorer:
+    image: kodcloud/kodexplorer:latest
+    container_name: kodexplorer
+    restart: unless-stopped
+    env_file:
+      - .env
+    user: "0:0"
+    volumes:
+      - /:/var/www/html/data/User/admin/home/root
+      - ./kodexplorer_data:/var/www/html/data  # Uygulama verisi için
+
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kodexplorer.rule=Host(`kodexplorer.${DOMAIN}`)"
+      - "traefik.http.routers.kodexplorer.entrypoints=https"
+      - "traefik.http.routers.kodexplorer.tls.certresolver=cloudflare"
+      - "traefik.http.services.kodexplorer.loadbalancer.server.port=80"
+
+networks:
+  proxy:
+    external: true

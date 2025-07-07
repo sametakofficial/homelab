@@ -139,8 +139,7 @@ services:
       - proxy
     restart: unless-stopped
   rechecker:
-    build:
-      context: ./dockerfiles/recheck
+    build: .
     container_name: rechecker
     env_file:
       - ./.env      
