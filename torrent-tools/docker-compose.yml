@@ -1,4 +1,44 @@
 services:
+  gluetun:
+    image: qmcgaw/gluetun:v3
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - 8081:8081/tcp # qbittorrent
+    environment:
+      - TZ=${TZ}
+      - UPDATER_PERIOD=24h
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=${VPN_TYPE}
+      - BLOCK_MALICIOUS=off
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - PORT_FORWARD_ONLY=on
+      - VPN_PORT_FORWARDING=on
+      - VPN_PORT_FORWARDING_UP_COMMAND=/bin/sh -c 'wget -O- --retry-connrefused --post-data "json={\"listen_port\":{{PORTS}}}" http://127.0.0.1:8081/api/v2/app/setPreferences 2>&1'
+      - SERVER_COUNTRIES=${SERVER_COUNTRIES}
+    volumes:
+      - /data/srv/docker/gluetun/config:/gluetun
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - WEBUI_PORT=8081
+    volumes:
+      - /data/srv/docker/qbittorrent/config:/config
+      - /data/srv/downloads:/downloads
+    restart: unless-stopped
+    network_mode: "service:gluetun"
   jackett:
     image: linuxserver/jackett
     container_name: jackett
@@ -12,7 +52,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.jackett.rule=Host(`jackett.${DOMAIN}`)"
+      - "traefik.http.routers.jackett.rule=Host(`jackett-beast.${DOMAIN}`)"
       - "traefik.http.routers.jackett.entrypoints=https"
       - "traefik.http.routers.jackett.tls.certresolver=cloudflare"
       - "traefik.http.services.jackett.loadbalancer.server.port=9117"
@@ -34,7 +74,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN}`)"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr-beast.${DOMAIN}`)"
       - "traefik.http.routers.sonarr.entrypoints=https"
       - "traefik.http.routers.sonarr.tls.certresolver=cloudflare"
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
@@ -56,31 +96,10 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.radarr.rule=Host(`radarr.${DOMAIN}`)"
+      - "traefik.http.routers.radarr.rule=Host(`radarr-beast.${DOMAIN}`)"
       - "traefik.http.routers.radarr.entrypoints=https"
       - "traefik.http.routers.radarr.tls.certresolver=cloudflare"
       - "traefik.http.services.radarr.loadbalancer.server.port=7878"
-    networks:
-      - proxy
-    restart: unless-stopped
-
-  qbittorrent:
-    image: linuxserver/qbittorrent
-    container_name: qbittorrent
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    volumes:
-      - /srv/docker/qbittorrent/config:/config
-      - /srv/downloads:/downloads
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=proxy"
-      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.${DOMAIN}`)"
-      - "traefik.http.routers.qbittorrent.entrypoints=https"
-      - "traefik.http.routers.qbittorrent.tls.certresolver=cloudflare"
-      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
     networks:
       - proxy
     restart: unless-stopped
@@ -101,13 +120,13 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - /srv/docker/jellyfin/config:/config
-      - /srv/media:/media
-      - /srv/downloads:/downloads
+      - /data/srv/docker/jellyfin/config:/config
+      - /data/srv/media:/media
+      - /data/srv/downloads:/downloads
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.${DOMAIN}`)"
+      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin-beast.${DOMAIN}`)"
       - "traefik.http.routers.jellyfin.entrypoints=https"
       - "traefik.http.routers.jellyfin.tls.certresolver=cloudflare"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
@@ -131,7 +150,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.flexget.rule=Host(`flexget.${DOMAIN}`)"
+      - "traefik.http.routers.flexget.rule=Host(`flexget-beast.${DOMAIN}`)"
       - "traefik.http.routers.flexget.entrypoints=https"
       - "traefik.http.routers.flexget.tls.certresolver=cloudflare"
       - "traefik.http.services.flexget.loadbalancer.server.port=5050"
@@ -177,7 +196,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.plex.rule=Host(`plex.${DOMAIN}`)"
+      - "traefik.http.routers.plex.rule=Host(`plex-beast.${DOMAIN}`)"
       - "traefik.http.routers.plex.entrypoints=https"
       - "traefik.http.routers.plex.tls.certresolver=cloudflare"
       - "traefik.http.services.plex.loadbalancer.server.port=32400"
