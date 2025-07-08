@@ -1,1 +1,5 @@
 config/
+wireguard-config
+wg-easy-config
+gluetun-data
+gluetun
