@@ -2,7 +2,7 @@
 # DÜZELTME: set -e kaldırıldı. Hata kontrolü artık manuel yapılacak.
 
 # Ana çalışma dizini
-BASE_DIR="$HOME/homelab"
+BASE_DIR="/opt/homelab"
 
 # Şifresi çözülecek dosyaların tam listesi
 files_to_decrypt=(
